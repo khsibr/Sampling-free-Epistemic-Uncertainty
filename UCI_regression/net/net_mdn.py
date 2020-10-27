@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import time
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 import numpy as np
 
 import tensorflow as tf

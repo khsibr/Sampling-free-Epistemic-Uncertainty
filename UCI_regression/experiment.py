@@ -30,6 +30,8 @@ parser.add_argument('--learn_dropout', '-ld', default='0', type=int, help='Learn
 parser.add_argument('--debug', '-db', default='0', type=int, help='Debug mode')
 parser.add_argument('--learning_rate', '-lr', default='0.001', type=float, help='Learning rate')
 parser.add_argument('--initial_drop_rate', '-id', default='0.05', type=float, help='Initial dropout rate')
+parser.add_argument('--analytic_tll', '-at', default='1', type=float, help='analytic_tll')
+parser.add_argument('--exact_act', '-ea', default='1', type=float, help='exact_act')
 
 args=parser.parse_args()
 
@@ -155,7 +157,9 @@ print ("Done.")
 errors, MC_errors, MC_lls, ANA_errors, ANA_lls, mc_times, ana_times = [], [], [], [], [], [], []
 MDN_errors, MDN_lls, mdn_times = [], [], []
 LDO_errors, LDO_lls, ldo_times = [], [], []
-for split in range(int(n_splits)):
+splits = [19]
+# for split in range(int(n_splits)):
+for split in splits:
 
     # We load the indexes of the training and test sets
     print ('Loading file: ' + _get_index_train_test_path(split, train=True))
@@ -254,7 +258,18 @@ for split in range(int(n_splits)):
                               ([ int(n_hidden) ] * num_hidden_layers),
                               n_epochs = int(n_epochs * epochs_multiplier), tau = best_tau_ANA,
                               dropout = best_dropout_ANA, debug=debug, lr=lr)
+        error, MC_error, MC_ll, ANA_error, ANA_ll, _, _ = best_network_ANA.predict(X_train_original, y_train_original, use_cov=use_cov)
+        print(f"Tests on split Train {str(split)} complete, error={error}, "
+              f"MC_error={MC_error}, "
+              f"MC_ll={MC_ll}, "
+              f"ANA_error={ANA_error}, "
+              f"ANA_ll={ANA_ll}.")
         error, MC_error, MC_ll, ANA_error, ANA_ll, _, _ = best_network_ANA.predict(X_test, y_test, use_cov=use_cov)
+        print(f"Tests on split Test {str(split)} complete, error={error}, "
+              f"MC_error={MC_error}, "
+              f"MC_ll={MC_ll}, "
+              f"ANA_error={ANA_error}, "
+              f"ANA_ll={ANA_ll}.")
 
         ANA_errors += [ANA_error]
         ANA_lls += [ANA_ll]
@@ -289,7 +304,15 @@ for split in range(int(n_splits)):
         best_mdn = net_mdn(X_train_original, y_train_original, X_test, y_test, ([int(n_hidden)] * num_hidden_layers),
                            n_epochs=int(n_epochs * epochs_multiplier), tau=best_tau_MDN, debug=debug, lr=lr)
 
+        MDN_error, MDN_ll, MDN_runtime = best_mdn.predict(X_train_original, y_train_original)
+        print(f"Tests on split Train {str(split)} complete, MDN_error={MDN_error}, "
+              f"MDN_ll={MDN_ll}, "
+              f"MDN_runtime={MDN_runtime}.")
+
         MDN_error, MDN_ll, MDN_runtime = best_mdn.predict(X_test, y_test)
+        print(f"Tests on split Test {str(split)} complete, MDN_error={MDN_error}, "
+              f"MDN_ll={MDN_ll}, "
+              f"MDN_runtime={MDN_runtime}.")
 
         MDN_errors += [MDN_error]
         MDN_lls += [MDN_ll]
@@ -343,7 +366,15 @@ for split in range(int(n_splits)):
                                        lr=lr,
                                        init_val=initial_dropout_rate)
 
+        LDO_error, LDO_ll, LDO_runtime = best_ldo.predict(X_train_original, y_train_original)
+        print(f"Prediction on split Train {str(split)} complete, LDO_error={LDO_error}, "
+              f"LDO_ll={LDO_ll}, "
+              f"LDO_runtime={LDO_runtime}.")
+
         LDO_error, LDO_ll, LDO_runtime = best_ldo.predict(X_test, y_test)
+        print(f"Prediction on split Test {str(split)} complete, LDO_error={LDO_error}, "
+              f"LDO_ll={LDO_ll}, "
+              f"LDO_runtime={LDO_runtime}.")
 
         LDO_errors += [LDO_error]
         LDO_lls += [LDO_ll]

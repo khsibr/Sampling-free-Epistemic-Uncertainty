@@ -6,7 +6,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import time
-from scipy.misc import logsumexp
+from scipy.special import logsumexp
 import numpy as np
 
 from tensorflow.keras.regularizers import l2
